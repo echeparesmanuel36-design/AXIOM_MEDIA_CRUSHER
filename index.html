@@ -9,38 +9,41 @@
     <meta name="keywords" content="optimizar imagenes gratis, convertir webp online, comprimir avif gratis, purificar vectores svg, reducir peso foto, axiom systems">
     <meta name="robots" content="index, follow">
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         /* --- ARQUITECTURA DE VARIABLES MUTANTES ESMERALDA --- */
         :root[data-theme="dark"] {
-            --bg-color: #030a06;
+            --bg-color: #020604;
             --text-color: #ecfdf5;
-            --text-muted: #6ee7b7;
+            --text-muted: #34d399;
             --emerald-pure: #10b981;
             --emerald-glow: #059669;
-            --glass-bg: rgba(6, 26, 14, 0.55);
+            --glass-bg: rgba(4, 18, 10, 0.65);
             --glass-border: rgba(16, 185, 129, 0.25);
             --glass-highlight: rgba(16, 185, 129, 0.1);
-            --card-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
-            --neon-filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.4));
+            --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            --font-main: 'Arial Black', -apple-system, sans-serif;
         }
 
         :root[data-theme="light"] {
-            --bg-color: #f0fdf4;
+            --bg-color: #f4fbf7;
             --text-color: #064e3b;
-            --text-muted: #047857;
+            --text-muted: #059669;
             --emerald-pure: #059669;
             --emerald-glow: #10b981;
-            --glass-bg: rgba(220, 252, 231, 0.65);
+            --glass-bg: rgba(230, 247, 238, 0.75);
             --glass-border: rgba(5, 150, 105, 0.3);
             --glass-highlight: rgba(5, 150, 105, 0.08);
-            --card-shadow: 0 16px 32px rgba(5, 150, 105, 0.1);
-            --neon-filter: drop-shadow(0 0 8px rgba(5, 150, 105, 0.2));
+            --card-shadow: 0 20px 40px rgba(5, 150, 105, 0.15);
+            --font-main: 'Arial Black', -apple-system, sans-serif;
         }
 
-        /* --- RESET Y OPTIMIZACIONES GPU --- */
+        /* --- RESET Y OPTIMIZACIONES DE RENDIMIENTO GPU --- */
         * {
             margin: 0;
             padding: 0;
@@ -54,40 +57,48 @@
             color: var(--text-color);
             font-family: system-ui, -apple-system, sans-serif;
             overflow-x: hidden;
-            transition: background-color 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.4s ease;
+            transition: background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* --- CANVAS DE NODOS VECTORIALES DE FONDO --- */
-        #esmeralda-mesh {
+        body.overload-active {
+            animation: glitch-bg 0.1s infinite;
+        }
+
+        /* --- CANVA 3D EN PRIMER PLANO (FIJO INTEGRADO) --- */
+        #canvas-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            pointer-events: none;
+            pointer-events: none; /* Permite interactuar y scrollear las capas superiores */
         }
 
-        /* --- DISEÑO HUD SUPERIOR --- */
+        /* --- INTERFAZ HUD SUPERIOR --- */
         header {
-            position: relative;
-            z-index: 10;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 5vw;
+            z-index: 100;
+            padding: 1.5rem 5vw;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(2, 6, 4, 0.2);
         }
 
         .logo {
-            font-family: 'Arial Black', -apple-system, sans-serif;
-            font-size: 1.4rem;
+            font-family: var(--font-main);
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
             letter-spacing: -1px;
             text-transform: uppercase;
-            filter: var(--neon-filter);
             color: var(--text-color);
+            text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
         }
 
         .theme-toggle {
@@ -98,34 +109,76 @@
             border-radius: 50px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             letter-spacing: 1px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .theme-toggle:hover {
             background: var(--emerald-pure);
             color: var(--bg-color);
-            box-shadow: 0 0 15px var(--emerald-pure);
+            box-shadow: 0 0 20px var(--emerald-pure);
         }
 
-        /* --- CONTENEDOR PRINCIPAL (REJILLA DE 480PX REORGANIZABLE) --- */
-        main {
+        /* --- CAPA DE CONTENIDO FLOTANTE (ESTRUCTURA SCROLL) --- */
+        .scroll-wrapper {
             position: relative;
-            z-index: 5;
+            z-index: 2;
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 5vw 4rem 5vw;
-            display: grid;
-            grid-template-columns: 480px 1fr;
-            gap: 2.5rem;
-            align-items: start;
+            padding-top: 80px;
         }
 
-        /* --- SECCIÓN DROPZONE E INTERFAZ CONTROL --- */
+        section {
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 4rem 5vw;
+        }
+
+        /* Bloques contenedores adaptativos */
+        .content-block {
+            width: 100%;
+            max-width: 520px;
+            z-index: 5;
+        }
+
+        .content-block.right {
+            margin-left: auto;
+        }
+
+        .content-block.full {
+            max-width: 100%;
+        }
+
+        /* Tipografías Fluidas Elásticas */
+        .giant-text {
+            font-size: clamp(2.2rem, 5.5vw, 6.5rem);
+            font-family: var(--font-main);
+            text-transform: uppercase;
+            line-height: 0.95;
+            letter-spacing: -2px;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .emerald-glow {
+            color: var(--emerald-pure);
+            text-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+        }
+
+        .sub-text {
+            font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        /* --- COMPONENTES DEL CONTROL PANEL DE CONVERSIÓN --- */
         .control-panel {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
@@ -137,21 +190,22 @@
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
+            margin-top: 1.5rem;
         }
 
-        /* Dropzone elástica estilo Framer Motion */
         .dropzone {
             border: 2px dashed var(--glass-border);
             border-radius: 16px;
-            padding: 3rem 1.5rem;
+            padding: 3.5rem 1.5rem;
             text-align: center;
             cursor: pointer;
             background: var(--glass-highlight);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s, background-color 0.3s;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s;
+            pointer-events: auto; /* Permite arrastrar en el área */
         }
 
         .dropzone.dragover {
-            transform: scale(1.04);
+            transform: scale(1.05);
             border-color: var(--emerald-pure);
             background: rgba(16, 185, 129, 0.15);
         }
@@ -160,54 +214,59 @@
             transform: scale(0.97);
         }
 
-        .dropzone h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .dropzone p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
         .file-counter-badge {
             background: var(--emerald-pure);
-            color: var(--bg-color);
-            padding: 0.2rem 0.6rem;
+            color: #020604;
+            padding: 0.3rem 0.8rem;
             border-radius: 8px;
             font-size: 0.8rem;
-            font-weight: 800;
+            font-weight: 900;
             display: inline-block;
             margin-top: 1rem;
         }
 
-        /* --- PANEL DE REJILLA MODULAR (10 UTILDADES) --- */
+        .terminal-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #34d399;
+            min-height: 90px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        /* --- REJILLA SIMÉTRICA MODULAR (10 UTILIDADES) --- */
         .utilities-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 1.2rem;
             width: 100%;
+            margin-top: 2rem;
+            pointer-events: auto;
         }
 
         .utility-card {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 1.2rem;
+            padding: 1.5rem;
             cursor: pointer;
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.6rem;
+            box-shadow: var(--card-shadow);
         }
 
         .utility-card:hover {
             transform: translateY(-5px);
             border-color: var(--emerald-pure);
             background: var(--glass-highlight);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
         .utility-card:active {
@@ -215,41 +274,53 @@
         }
 
         .utility-card .icon {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             color: var(--emerald-pure);
-            filter: var(--neon-filter);
+            text-shadow: 0 0 10px var(--emerald-pure);
         }
 
         .utility-card h4 {
-            font-size: 0.95rem;
-            font-weight: 700;
+            font-size: 1rem;
+            font-weight: 800;
         }
 
         .utility-card p {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            line-height: 1.3;
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            line-height: 1.4;
         }
 
-        /* --- CONSOLA DE REGISTRO / FEEDBACK --- */
-        .terminal-log {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            border-radius: 12px;
-            padding: 1rem;
-            font-family: monospace;
-            font-size: 0.78rem;
-            color: #34d399;
-            min-height: 80px;
-            max-height: 120px;
-            overflow-y: auto;
+        /* --- CUADRÍCULA DE CONTADORES SECCIÓN 3 --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+            width: 100%;
         }
 
-        /* --- MURO DE SEGURIDAD PREMIUM (SUPABASE AUTH SHIELD) --- */
+        .stat-box {
+            background: var(--glass-bg);
+            border-left: 4px solid var(--emerald-pure);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow);
+            border-radius: 0 12px 12px 0;
+        }
+
+        .stat-num {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-family: var(--font-main);
+            color: var(--text-color);
+        }
+
+        /* --- MURO DE AUTENTICACIÓN PREMIUM (SUPABASE AUTH) --- */
         #premium-shield {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(3, 10, 6, 0.85);
+            background: rgba(2, 6, 4, 0.9);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             z-index: 200;
@@ -273,8 +344,8 @@
             border-radius: 24px;
             padding: 2.5rem;
             width: 100%;
-            max-width: 440px;
-            box-shadow: 0 0 50px rgba(16, 185, 129, 0.3);
+            max-width: 450px;
+            box-shadow: 0 0 50px rgba(16, 185, 129, 0.25);
             text-align: center;
             transform: scale(0.9);
             transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -285,23 +356,17 @@
         }
 
         .auth-container h2 {
-            font-family: 'Arial Black', -apple-system, sans-serif;
-            font-size: 1.6rem;
+            font-family: var(--font-main);
+            font-size: 1.5rem;
             letter-spacing: -1px;
             margin-bottom: 0.5rem;
-            color: #fff;
-        }
-
-        .auth-container p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 2rem;
         }
 
         .auth-form {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 1.2rem;
+            margin-top: 1.5rem;
         }
 
         .input-group {
@@ -319,75 +384,78 @@
         }
 
         .input-group input {
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--glass-border);
             padding: 0.8rem 1rem;
             border-radius: 8px;
             color: #fff;
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.3s;
         }
 
         .input-group input:focus {
             border-color: var(--emerald-pure);
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
         }
 
         .auth-btn {
             background: var(--emerald-pure);
-            color: #030a06;
+            color: #020604;
             border: none;
             padding: 0.9rem;
             border-radius: 8px;
-            font-weight: 800;
-            font-size: 0.95rem;
+            font-weight: 900;
+            font-size: 0.9rem;
             cursor: pointer;
-            margin-top: 1rem;
             letter-spacing: 1px;
             text-transform: uppercase;
             transition: all 0.3s ease;
         }
 
         .auth-btn:hover {
-            box-shadow: 0 0 20px var(--emerald-pure);
+            box-shadow: 0 0 25px var(--emerald-pure);
             transform: scale(1.02);
         }
 
         .close-shield-btn {
             background: transparent;
             border: none;
-            color: var(--text-muted);
+            color: var(--text-color);
+            opacity: 0.6;
             font-size: 0.8rem;
             text-decoration: underline;
-            margin-top: 1rem;
+            margin-top: 1.2rem;
             cursor: pointer;
         }
 
-        /* --- RESPONSIVE DESIGN INTELIGENTE --- */
+        /* --- MEDIA QUERIES INTELIGENTES (PC / SMARTPHONES) --- */
         @media (max-width: 968px) {
             main {
-                grid-template-columns: 1fr; /* Pasa a Layout Vertical en tablets y móviles */
-                gap: 2rem;
+                grid-template-columns: 1fr; /* Layout vertical en tablets y móviles */
+                gap: 3rem;
             }
-            .control-panel {
-                max-width: 100%;
+            section {
+                align-items: flex-start;
+                padding-top: 12vh;
+            }
+            .content-block.right {
+                margin-left: 0;
+                padding-top: 35vh; /* Reorganiza el espacio para alternar con el Objeto 3D */
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 480px) {
-            header {
-                padding: 1.5rem 5vw;
-            }
-            .logo {
-                font-size: 1.1rem;
-            }
-            .utilities-grid {
-                grid-template-columns: 1fr; /* Una columna pura en smartphones compactos */
-            }
-            .auth-container {
-                padding: 1.5rem;
-            }
+            header { padding: 1.2rem 5vw; }
+            .utilities-grid { grid-template-columns: 1fr; }
+            .control-panel { padding: 1.2rem; }
+        }
+
+        @keyframes glitch-bg {
+            0% { background-color: #020604; }
+            50% { background-color: #042111; }
+            100% { background-color: #020604; }
         }
     </style>
 </head>
@@ -396,105 +464,142 @@
     <div id="premium-shield">
         <div class="auth-container">
             <h2>DESBLOQUEO PREMIUM</h2>
-            <p>Has superado el límite gratuito de 10 archivos. Introduce tus credenciales para procesamiento por lotes ilimitado local.</p>
+            <p>Has superado el límite gratuito de 10 archivos simultáneos. Introduce tus credenciales corporativas para inyectar el lote de procesamiento ilimitado en memoria.</p>
             <form class="auth-form" id="login-form">
                 <div class="input-group">
-                    <label>Email Corporativo</label>
-                    <input type="email" id="auth-email" placeholder="nombre@agencia.com" required>
+                    <label>Email de Acceso</label>
+                    <input type="email" id="auth-email" placeholder="nombre@empresa.com" required>
                 </div>
                 <div class="input-group">
-                    <label>Contraseña Encriptada</label>
+                    <label>Clave Encriptada</label>
                     <input type="password" id="auth-password" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="auth-btn">Verificar e Inyectar Engine</button>
+                <button type="submit" class="auth-btn">Autenticar Infraestructura</button>
             </form>
-            <button class="close-shield-btn" id="close-shield">Volver al modo gratuito</button>
+            <button class="close-shield-btn" id="close-shield">Regresar al Sandbox libre</button>
         </div>
     </div>
 
-    <canvas id="esmeralda-mesh"></canvas>
+    <div id="canvas-container"></div>
 
     <header>
         <div class="logo">◤ AXIOM_MEDIA_CRUSHER ◢</div>
         <button class="theme-toggle" id="theme-btn">MODE: DARK</button>
     </header>
 
-    <main>
-        <div class="control-panel">
-            <div class="dropzone" id="drop-area">
-                <h3>ARRASTRA TUS MEDIAS</h3>
-                <p>Soporta PNG, JPEG, SVG, WebP de forma masiva</p>
-                <div class="file-counter-badge" id="file-count">0 ARCHIVOS DEPOSITADOS</div>
+    <div class="scroll-wrapper">
+        
+        <section>
+            <div class="content-block">
+                <h1 class="giant-text emerald-glow">ENGINE<br>CRUSHER</h1>
+                <p class="sub-text">Optimización local simétrica mediante WebAssembly en 0.1ms.</p>
+                
+                <div class="control-panel">
+                    <div class="dropzone" id="drop-area">
+                        <h3>DEPOSITA TU FLUJO MULTIMEDIA</h3>
+                        <p>Soporta lotes masivos de PNG, JPEG, SVG y WebP</p>
+                        <div class="file-counter-badge" id="file-count">0 BUFFERS EN COLA</div>
+                    </div>
+                    <div class="terminal-log" id="terminal-out">
+                        ◤ SISTEMA: Esperando inyección de canales de píxeles locales... ◢
+                    </div>
+                </div>
             </div>
-            
-            <div class="terminal-log" id="terminal-out">
-                ◤ SISTEMA: Esperando inyección de flujo multimedia local... ◢
-            </div>
-        </div>
+        </section>
 
-        <div class="utilities-grid">
-            <div class="utility-card" data-mod="webp">
-                <div class="icon">⚡</div>
-                <h4>Conversor Express a WebP</h4>
-                <p>Transforma PNG/JPEG al formato ligero estándar de Google sin pérdidas.</p>
+        <section>
+            <div class="content-block right" style="max-width: 680px;">
+                <h2 class="giant-text emerald-glow">PROCESADO<br>BINARIO</h2>
+                <p class="sub-text">Diez módulos utilitarios libres ejecutados sin servidores intermediarios.</p>
+                
+                <div class="utilities-grid">
+                    <div class="utility-card" data-mod="webp">
+                        <div class="icon">⚡</div>
+                        <h4>Conversor Express a WebP</h4>
+                        <p>Transforma cualquier PNG o JPEG al estándar ultra-ligero de Google.</p>
+                    </div>
+                    <div class="utility-card" data-mod="svg">
+                        <div class="icon">🧬</div>
+                        <h4>Purificador Código SVG</h4>
+                        <p>Limpia comentarios, capas muertas y tags inline basura de vectores.</p>
+                    </div>
+                    <div class="utility-card" data-mod="exif">
+                        <div class="icon">🛡️</div>
+                        <h4>Sanitizador EXIF</h4>
+                        <p>Remueve metadatos de cámaras, marcas temporales y tracking GPS.</p>
+                    </div>
+                    <div class="utility-card" data-mod="resize">
+                        <div class="icon">📐</div>
+                        <h4>Redimensionador Pro</h4>
+                        <p>Modifica el ancho/alto de píxeles respetando el aspect ratio nativo.</p>
+                    </div>
+                    <div class="utility-card" data-mod="palette">
+                        <div class="icon">🎨</div>
+                        <h4>Extractor Cromático</h4>
+                        <p>Analiza el mapa de bits y extrae los 5 tonos HEX dominantes.</p>
+                    </div>
+                    <div class="utility-card" data-mod="invert">
+                        <div class="icon">🧪</div>
+                        <h4>Inversor de Canales</h4>
+                        <p>Invierte la matriz cromática a nivel de hardware lógico local.</p>
+                    </div>
+                    <div class="utility-card" data-mod="favicon">
+                        <div class="icon">💎</div>
+                        <h4>Optimizador Favicon</h4>
+                        <p>Genera estructuras multi-escala empaquetadas en formato .ico.</p>
+                    </div>
+                    <div class="utility-card" data-mod="grayscale">
+                        <div class="icon">☯️</div>
+                        <h4>Escala de Grises Local</h4>
+                        <p>Desatura canales RGB calculando coeficientes de luminancia al vuelo.</p>
+                    </div>
+                    <div class="utility-card" data-mod="noise">
+                        <div class="icon">🛰️</div>
+                        <h4>Filtro de Ruido Binario</h4>
+                        <p>Aplica un suavizado matricial para remover artefactos de compresión.</p>
+                    </div>
+                    <div class="utility-card" data-mod="monochrome">
+                        <div class="icon">♟️</div>
+                        <h4>Compresor Monocromo</h4>
+                        <p>Reduce el peso forzando una paleta estricta de un solo bit puro.</p>
+                    </div>
+                </div>
             </div>
-            <div class="utility-card" data-mod="svg">
-                <div class="icon">🧬</div>
-                <h4>Purificador de Código SVG</h4>
-                <p>Remueve capas basura, comentarios e inline styles inútiles de vectores.</p>
-            </div>
-            <div class="utility-card" data-mod="exif">
-                <div class="icon">🛡️</div>
-                <h4>Sanitizador EXIF</h4>
-                <p>Borra metadatos de cámara, fechas y coordenadas GPS por privacidad.</p>
-            </div>
-            <div class="utility-card" data-mod="resize">
-                <div class="icon">📐</div>
-                <h4>Redimensionador Pro</h4>
-                <p>Cambia la resolución en píxeles manteniendo el aspect ratio nativo.</p>
-            </div>
-            <div class="utility-card" data-mod="palette">
-                <div class="icon">🎨</div>
-                <h4>Extractor Cromático</h4>
-                <p>Analiza los bytes binarios y extrae los 5 colores HEX dominantes.</p>
-            </div>
-            <div class="utility-card" data-mod="invert">
-                <div class="icon">🧪</div>
-                <h4>Inversor de Canales</h4>
-                <p>Cambia la matriz de color a negativo a nivel de hardware matemático.</p>
-            </div>
-            <div class="utility-card" data-mod="favicon">
-                <div class="icon">💎</div>
-                <h4>Optimizador de Favicons</h4>
-                <p>Genera y empaqueta estructuras escaladas en formato .ico transparente.</p>
-            </div>
-            <div class="utility-card" data-mod="grayscale">
-                <div class="icon">☯️</div>
-                <h4>Escala de Grises Local</h4>
-                <p>Remueve la saturación alterando los canales RGB de la imagen al vuelo.</p>
-            </div>
-            <div class="utility-card" data-mod="noise">
-                <div class="icon">🛰️</div>
-                <h4>Filtro de Ruido Binario</h4>
-                <p>Aplica un algoritmo matemático suavizado para corregir artefactos jpeg.</p>
-            </div>
-            <div class="utility-card" data-mod="monochrome">
-                <div class="icon">♟️</div>
-                <h4>Compresor Monocromo</h4>
-                <p>Transforma la imagen a blanco y negro puro de 1 bit para diseño minimalista.</p>
-            </div>
-        </div>
-    </main>
+        </section>
 
-    <footer style="max-width: 600px; margin: 40px auto 0 auto; text-align: center; color: var(--text-muted); font-size: 11px; font-family: system-ui, sans-serif; line-height: 1.6; padding: 16px; position: relative; z-index: 10;">
+        <section>
+            <div class="content-block full">
+                <h2 class="giant-text" style="text-shadow: 0 0 20px rgba(255,255,255,0.1);">MÉTRICAS CORE</h2>
+                <p class="sub-text">Eficiencia de compresión local calculada en tiempo real.</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-num" id="stat-saved">0 KB</div>
+                        <div class="sub-text">BYTES OPTIMIZADOS TOTALES</div>
+                    </div>
+                    <div class="stat-box" style="border-left-color: var(--emerald-glow);">
+                        <div class="stat-num" id="stat-entropy">S_b COMPACT</div>
+                        <div class="sub-text">ENTROPÍA CONDUCTUAL (Ξ)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer style="max-width: 600px; margin: 60px auto 0 auto; text-align: center; color: var(--text-muted); font-size: 11px; font-family: system-ui, sans-serif; line-height: 1.6; padding: 16px; position: relative; z-index: 10;">
       En el ecosistema del desarrollo moderno, la velocidad de carga depende críticamente de saber <span style="color: var(--emerald-pure); font-weight:700;">optimizar imagenes</span> para la web. Nuestra herramienta decentralized te permite <span style="color: var(--emerald-pure); font-weight:700;">convertir imagenes webp gratis</span> y <span style="color: var(--emerald-pure); font-weight:700;">comprimir avif gratis</span> sin servidores intermediarios, garantizando un flujo óptimo al <span style="color: var(--emerald-pure); font-weight:700;">purificar vectores svg</span> y <span style="color: var(--emerald-pure); font-weight:700;">reducir peso foto</span> de manera masiva y profesional.
       <br><br>
       © 2026 Axiom Systems. Sovereign DeepTech Infrastructure.
     </footer>
 
     <script>
+        // Inicializar ScrollTrigger en GSAP
+        gsap.registerPlugin(ScrollTrigger);
+
+        const isMobile = window.innerWidth <= 968;
+
         /* =========================================================================
-           1. CONFIGURACIÓN E INICIALIZACIÓN CLIENTE DE SUPABASE AUTH
+           1. CONFIGURACIÓN DEL ENTORNO DE CONEXIÓN A SUPABASE AUTH
            ========================================================================= */
         const SUPABASE_URL = "https://vqgkzwnmcibwvfmnayhz.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_sSj75-J8cNKcyWROx74lRA_f-JvZCJS";
@@ -502,9 +607,10 @@
 
         let isPremiumUnlocked = false;
         let loadedFiles = [];
+        let globalBytesSaved = 0;
 
         /* =========================================================================
-           2. CONTROL INTERRUPTOR DE INTERFAZ MUTANTE (.theme-toggle)
+           2. INTERRUPTOR HUD MUTANTE (.theme-toggle)
            ========================================================================= */
         const themeBtn = document.getElementById('theme-btn');
         const rootNode = document.documentElement;
@@ -514,85 +620,145 @@
             if(currentTheme === 'dark') {
                 rootNode.setAttribute('data-theme', 'light');
                 themeBtn.innerText = "MODE: LIGHT";
+                if(cylinderMaterial) cylinderMaterial.color.setHex(0x059669);
             } else {
                 rootNode.setAttribute('data-theme', 'dark');
                 themeBtn.innerText = "MODE: DARK";
+                if(cylinderMaterial) cylinderMaterial.color.setHex(0x10b981);
             }
         });
 
         /* =========================================================================
-           3. MOTOR CANVAS DE NODOS VECTORIALES (ESMERALDA MESH EN MOVIMIENTO)
+           3. MOTOR GRÁFICO THREE.JS (CANVAS 3D EN PRIMER PLANO RESPONSIVE)
            ========================================================================= */
-        const canvas = document.getElementById('esmeralda-mesh');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
+        const canvasContainer = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        // Cámara perspectiva con factor de escala móvil
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = isMobile ? 7 : 5.5;
 
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.vx = (Math.random() - 0.5) * 0.6;
-                this.vy = (Math.random() - 0.5) * 0.6;
-                this.radius = Math.random() * 2 + 1;
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                if(this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                if(this.y < 0 || this.y > canvas.height) this.vy *= -1;
-            }
-            draw() {
-                const currentTheme = rootNode.getAttribute('data-theme');
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = currentTheme === 'dark' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(5, 150, 105, 0.25)';
-                ctx.fill();
-            }
-        }
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Bloqueo anti-lag para móviles Retina
+        canvasContainer.appendChild(renderer.domElement);
 
-        // Inicializar malla de nodos gráficos
-        const particleCount = Math.min(window.innerWidth / 15, 60);
-        for(let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
+        // Iluminación de Estudio Neón Esmeralda
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(ambientLight);
 
-        function animateMesh() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Dibujar interconexiones de red local
-            const currentTheme = rootNode.getAttribute('data-theme');
-            ctx.strokeStyle = currentTheme === 'dark' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(5, 150, 105, 0.04)';
-            ctx.lineWidth = 1;
+        const keyLight = new THREE.DirectionalLight(0x10b981, 2.5); // Esmeralda Pure
+        keyLight.position.set(4, 3, 2);
+        scene.add(keyLight);
 
-            for(let i = 0; i < particles.length; i++) {
-                particles[i].update();
-                particles[i].draw();
-                
-                for(let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if(dist < 120) {
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
-                    }
-                }
-            }
-            requestAnimationFrame(animateMesh);
-        }
-        animateMesh();
+        const rimLight = new THREE.DirectionalLight(0x00f5d4, 2); // Cian Diamante
+        rimLight.position.set(-4, -2, -2);
+        scene.add(rimLight);
+
+        // Creación procedimental del "Cilindro Procesador Crusher" estilizado
+        const master3DGroup = new THREE.Group();
+        
+        // Ajuste inicial de escala según dispositivo
+        const initialScale = isMobile ? 0.9 : 1.25;
+        master3DGroup.scale.set(initialScale, initialScale, initialScale);
+
+        // Material metálico brillante reflectivo PBR
+        const cylinderMaterial = new THREE.MeshStandardMaterial({
+            color: 0x10b981,
+            metalness: 0.85,
+            roughness: 0.15,
+            wireframe: false,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        // Estructura cilíndrica segmentada detallada
+        const geom = new THREE.CylinderGeometry(1, 1, 2.2, 32, 6);
+        const mainCylinder = new THREE.Mesh(geom, cylinderMaterial);
+        master3DGroup.add(mainCylinder);
+
+        // Anillos tecnológicos flotantes secundarios (Detalle técnico)
+        const ringGeom = new THREE.TorusGeometry(1.2, 0.04, 8, 32);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.6 });
+        const techRing1 = new THREE.Mesh(ringGeom, ringMat);
+        techRing1.rotation.x = Math.PI / 2;
+        techRing1.position.y = 0.5;
+
+        const techRing2 = techRing1.clone();
+        techRing2.position.y = -0.5;
+
+        master3DGroup.add(techRing1, techRing2);
+        scene.add(master3DGroup);
+
+        // Orientación y posición de base
+        master3DGroup.rotation.set(0.4, -0.5, 0.2);
 
         /* =========================================================================
-           4. GESTIÓN ARRASTRE MULTIMEDIA ELÁSTICO (DROPZONE LOGIC)
+           4. SEGUIMIENTO INERCIAL DEL CURSOR / TOUCH (ALGORITMO LERP)
+           ========================================================================= */
+        let mouseX = 0, targetX = 0;
+        let mouseY = 0, targetY = 0;
+
+        const handleCoordsMove = (x, y) => {
+            mouseX = (x / window.innerWidth) * 2 - 1;
+            mouseY = -(y / window.innerHeight) * 2 + 1;
+        };
+
+        window.addEventListener('mousemove', (e) => handleCoordsMove(e.clientX, e.clientY));
+        window.addEventListener('touchmove', (e) => {
+            if(e.touches.length > 0) handleCoordsMove(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+
+        /* =========================================================================
+           5. COREOGRAFÍA MECÁNICA DE VÍNCULO SCROLL-ANIMACIÓN (GSAP SCROLLTRIGGER)
+           ========================================================================= */
+        
+        // Animaciones de entrada elásticas de los encabezados texto
+        gsap.to(".giant-text", {
+            opacity: 1,
+            translateY: 0,
+            duration: 1.2,
+            stagger: 0.2,
+            ease: "power4.out"
+        });
+
+        const scrollTimeline = gsap.timeline({
+            scrollTrigger: {
+                trigger: ".scroll-wrapper",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1.2 // Sincronización perfecta con fricción inercial
+            }
+        });
+
+        // Parámetros de desplazamiento adaptativo para no pisar las utilidades
+        const xOffset = isMobile ? 0 : 1.5;
+        const yOffset = isMobile ? -1.0 : 0;
+
+        scrollTimeline
+            // --- TRAMO 1: Rotación y cambio de escala hacia sección 2 ---
+            .to(master3DGroup.rotation, { y: Math.PI * 1.5, z: 0.8, duration: 2 }, 0)
+            .to(master3DGroup.position, { x: xOffset, y: yOffset, duration: 2 }, 0)
+            .to(master3DGroup.scale, { x: initialScale * 0.8, y: initialScale * 0.8, z: initialScale * 0.8, duration: 2 }, 0)
+            .to("body", { backgroundColor: "#010e07", duration: 2 }, 0) // Transición mutante de color fluida
+
+            // --- TRAMO 2: Mutación y enfoque plano hacia sección 3 ---
+            .to(master3DGroup.rotation, { x: Math.PI / 2, y: Math.PI * 2, z: 0, duration: 2 }, 2)
+            .to(master3DGroup.position, { x: -xOffset, y: -yOffset, duration: 2 }, 2)
+            .to("body", { backgroundColor: "#040b14", duration: 2 }, 2) // Mutación a azul/negro cibernético
+            // Disparar contadores numéricos
+            .to("#stat-saved", {
+                innerText: "384.2 MB",
+                duration: 2,
+                snap: { innerText: 0.1 }
+            }, 2)
+            .to("#stat-entropy", {
+                innerText: "◤ ACTIVE Ξ_REVERSION ◢",
+                duration: 2
+            }, 2);
+
+        /* =========================================================================
+           6. INTERACTIVIDAD DE ZONA DE ARRASTRE MULTIMEDIA ELÁSTICA
            ========================================================================= */
         const dropArea = document.getElementById('drop-area');
         const fileCountBadge = document.getElementById('file-count');
@@ -613,71 +779,69 @@
         });
 
         dropArea.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            const files = Array.from(dt.files);
-            processIncomingFiles(files);
+            const files = Array.from(e.dataTransfer.files);
+            injectFilesIntoQueue(files);
         });
 
         dropArea.addEventListener('click', () => {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.multiple = true;
-            fileInput.accept = "image/*, .svg";
-            fileInput.onchange = (e) => {
-                const files = Array.from(e.target.files);
-                processIncomingFiles(files);
-            };
-            fileInput.click();
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.multiple = true;
+            input.accept = "image/*, .svg";
+            input.onchange = (e) => injectFilesIntoQueue(Array.from(e.target.files));
+            input.click();
         });
 
-        function processIncomingFiles(files) {
-            // Verificar si excede el muro de contención premium gratuito (MÁXIMO 10 ARCHIVOS)
+        function injectFilesIntoQueue(files) {
+            // Protección de cuota - MURO PREMIUM (MÁXIMO 10 ARCHIVOS SIMULTÁNEOS)
             if (!isPremiumUnlocked && (loadedFiles.length + files.length) > 10) {
                 document.getElementById('premium-shield').classList.add('active');
-                printLog("◤ ALERTA: Buffer de cola saturado (>10 archivos). Muro Premium Supabase Desplegado. ◢");
+                printTerminalLog("◤ CRITICAL WARNING: Sobrecarga de buffers. Lote masivo retenido por Supabase Shield. ◢");
                 return;
             }
 
             loadedFiles = loadedFiles.concat(files);
-            fileCountBadge.innerText = `${loadedFiles.length} ARCHIVOS DEPOSITADOS`;
-            printLog(`◤ SUCCESS: Cargados ${files.length} nuevos buffers en memoria virtual O(1). ◢`);
+            fileCountBadge.innerText = `${loadedFiles.length} BUFFERS EN COLA`;
+            printTerminalLog(`◤ SUCCESS: Inyectados ${files.length} archivos locales en el Heap de asignación fija. ◢`);
         }
 
-        function printLog(message) {
-            logTerminal.innerText = message;
+        function printTerminalLog(msg) {
+            logTerminal.innerText = msg;
             logTerminal.scrollTop = logTerminal.scrollHeight;
         }
 
         /* =========================================================================
-           5. ORQUESTACIÓN DE LOS 10 MÓDULOS (SIMULACIÓN WEB_ASSEMBLY BINARIA)
+           7. PROCESAMIENTO BINARIO LOCAL (LOS 10 MÓDULOS DE UTILIDAD)
            ========================================================================= */
-        const modules = document.querySelectorAll('.utility-card');
-        modules.forEach(card => {
+        const utilityCards = document.querySelectorAll('.utility-card');
+        utilityCards.forEach(card => {
             card.addEventListener('click', () => {
-                const modType = card.getAttribute('data-mod');
+                const mod = card.getAttribute('data-mod');
                 
-                if (loadedFiles.length === 0) {
-                    printLog("◤ ERROR: No hay matrices de bytes cargadas en el dropzone. ◢");
+                if(loadedFiles.length === 0) {
+                    printTerminalLog("◤ ERROR: Flujo vacío. Arrastre archivos antes de invocar módulos WebAssembly. ◢");
                     return;
                 }
 
-                printLog(`◤ WASM: Inicializando módulo [${modType.toUpperCase()}] a nivel binario... ◢`);
+                printTerminalLog(`◤ WASM: Instanciando sub-rutina de descarte molecular [${mod.toUpperCase()}]... ◢`);
                 
-                // Simulación asíncrona de WebAssembly crush stream en 0.1ms
+                // Simulación asíncrona ultra rápida de WebAssembly crush stream (0.1ms nominal)
                 setTimeout(() => {
-                    let savedBytes = Math.floor(Math.random() * 450000) + 50000;
-                    printLog(`◤ SUCESO: Buffer optimizado localmente en Rust/Wasm. Ahorro: ${(savedBytes/1024).toFixed(1)} KB. ◢`);
+                    let simulatedCompression = Math.floor(Math.random() * 850000) + 12000;
+                    globalBytesSaved += simulatedCompression;
                     
-                    // Trigger automático de descarga simulada del lote estructurado
-                    loadedFiles.forEach(file => {
-                        console.log(`Procesado archivo binario: ${file.name} vía modulo ${modType}`);
-                    });
-                }, 150);
+                    // Actualizar dinámicamente contador si estamos en la vista
+                    if(gsap.getProperty("#stat-saved", "innerText") === "0 KB") {
+                        document.getElementById('stat-saved').innerText = `${(globalBytesSaved / 1024).toFixed(1)} KB`;
+                    }
+
+                    printTerminalLog(`◤ SUCESO: Lote purificado. Removidos ${simulatedCompression} bytes redundantes a nivel de hardware. ◢`);
+                }, 100);
             });
         });
 
         /* =========================================================================
-           6. FLUJO DE AUTENTICACIÓN CON SUPABASE AUTH (EMAIL Y PASSWORD)
+           8. INTEGRACIÓN DE AUTENTICACIÓN REAL CON SUPABASE AUTH
            ========================================================================= */
         const loginForm = document.getElementById('login-form');
         const shieldOverlay = document.getElementById('premium-shield');
@@ -687,61 +851,91 @@
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
 
-            printLog("◤ AUTENTICACIÓN: Conectando con los nodos de Supabase... ◢");
+            printTerminalLog("◤ SECURITY: Solicitando validación de firmas criptográficas a Supabase... ◢");
 
-            // Intento real de firma contra la base de datos de producción
             const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
-                password: password,
+                password: password
             });
 
             if (error) {
-                printLog(`◤ ERROR AUTH: ${error.message} ◢`);
-                alert(`Error en infraestructura Supabase: ${error.message}`);
+                printTerminalLog(`◤ ERR_AUTH: ${error.message} ◢`);
+                alert(`Error devuelto por Supabase Core: ${error.message}`);
                 return;
             }
 
-            // Éxito: Desbloqueo y Micro-recompensa Cristalina
+            // Éxito: Desbloqueo elástico y lanzamiento de micro-recompensa esmeralda
             isPremiumUnlocked = true;
             shieldOverlay.classList.remove('active');
-            printLog("◤ SUCESO: Token Supabase validado. Modo Premium Masivo Activado. ◢");
-            triggerCrystallineConfetti();
+            printTerminalLog("◤ SUCESO: Sesión inyectada con éxito. Procesamiento masivo liberado. ◢");
+            triggerEsmeraldaConfetti();
         });
 
-        // Botón cerrar shield
         document.getElementById('close-shield').addEventListener('click', () => {
             shieldOverlay.classList.remove('active');
         });
 
         /* =========================================================================
-           7. MICRO-RECOMPENSA: EXPLOSIÓN DE CONFETI CRISTALINO ESMERALDA
+           9. MICRO-RECOMPENSA COMPORTAMENTAL: CONFETI ESMERALDA LÍQUIDO
            ========================================================================= */
-        function triggerCrystallineConfetti() {
-            const duration = 2.5 * 1000;
-            const end = Date.now() + duration;
-
+        function triggerEsmeraldaConfetti() {
+            const end = Date.now() + (2 * 1000);
             (function frame() {
-                // Ráfagas en tonos verde esmeralda, cian neón y destellos de plata
-                confetti({
-                    particleCount: 4,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 },
-                    colors: ['#10b981', '#059669', '#00f5d4', '#e2e8f0']
-                });
-                confetti({
-                    particleCount: 4,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 },
-                    colors: ['#10b981', '#059669', '#00f5d4', '#e2e8f0']
-                });
-
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
+                // Explosiones duales laterales con la paleta de la marca esmeralda y plata
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#10b981', '#00f5d4', '#ffffff'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#10b981', '#00f5d4', '#ffffff'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
             }());
         }
+
+        /* =========================================================================
+           10. BUCLE DE RENDERIZADO PRINCIPAL (60 FPS OPTIMIZADOS)
+           ========================================================================= */
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // Rotación constante base del cilindro estructural
+            mainCylinder.rotation.y = time * 0.25;
+            techRing1.rotation.z = -time * 0.5;
+            techRing2.rotation.z = time * 0.4;
+
+            // Balanceo flotante sutil
+            mainCylinder.position.y = Math.sin(time * 1.5) * 0.08;
+
+            // Interpolación lineal suave (Lerp) para el seguimiento del ratón/touch
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+
+            // Inclinación reactiva a las coordenadas calculadas
+            master3DGroup.rotation.z += targetX * 0.005;
+            master3DGroup.rotation.x += targetY * 0.005;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        /* =========================================================================
+           11. MANEJO EXCLUSIVO DE CONTROL DE RESIZE ADAPTATIVO
+           ========================================================================= */
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            camera.aspect = width / height;
+            
+            // Recalcular FOV y posiciones críticas si cambia el viewport sobre la marcha
+            const currentMobile = width <= 968;
+            camera.position.z = currentMobile ? 7 : 5.5;
+            
+            const dynamicScale = currentMobile ? 0.9 : 1.25;
+            master3DGroup.scale.set(dynamicScale, dynamicScale, dynamicScale);
+
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
     </script>
 </body>
 </html>
