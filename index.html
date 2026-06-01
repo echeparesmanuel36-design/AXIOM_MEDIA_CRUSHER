@@ -72,10 +72,10 @@
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            pointer-events: none; /* Permite interactuar y scrollear las capas superiores */
+            pointer-events: none;
         }
 
-        /* --- INTERFAZ HUD SUPERIOR --- */
+        /* --- DISEÑO HUD SUPERIOR --- */
         header {
             position: fixed;
             top: 0;
@@ -201,7 +201,7 @@
             cursor: pointer;
             background: var(--glass-highlight);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s;
-            pointer-events: auto; /* Permite arrastrar en el área */
+            pointer-events: auto;
         }
 
         .dropzone.dragover {
@@ -430,7 +430,7 @@
         /* --- MEDIA QUERIES INTELIGENTES (PC / SMARTPHONES) --- */
         @media (max-width: 968px) {
             main {
-                grid-template-columns: 1fr; /* Layout vertical en tablets y móviles */
+                grid-template-columns: 1fr;
                 gap: 3rem;
             }
             section {
@@ -439,7 +439,7 @@
             }
             .content-block.right {
                 margin-left: 0;
-                padding-top: 35vh; /* Reorganiza el espacio para alternar con el Objeto 3D */
+                padding-top: 35vh;
             }
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -464,7 +464,7 @@
     <div id="premium-shield">
         <div class="auth-container">
             <h2>DESBLOQUEO PREMIUM</h2>
-            <p>Has superado el límite gratuito de 10 archivos simultáneos. Introduce tus credenciales corporativas para inyectar el lote de procesamiento ilimitado en memoria.</p>
+            <p>Has superado el límite gratuito de 10 archivos simultáneos. Introduce tus credenciales corporativas para activar el procesamiento por lotes ilimitado.</p>
             <form class="auth-form" id="login-form">
                 <div class="input-group">
                     <label>Email de Acceso</label>
@@ -474,7 +474,7 @@
                     <label>Clave Encriptada</label>
                     <input type="password" id="auth-password" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="auth-btn">Autenticar Infraestructura</button>
+                <button type="submit" class="auth-btn">Autenticar Cuenta</button>
             </form>
             <button class="close-shield-btn" id="close-shield">Regresar al Sandbox libre</button>
         </div>
@@ -491,17 +491,17 @@
         
         <section>
             <div class="content-block">
-                <h1 class="giant-text emerald-glow">ENGINE<br>CRUSHER</h1>
-                <p class="sub-text">Optimización local simétrica mediante WebAssembly en 0.1ms.</p>
+                <h1 class="giant-text emerald-glow">OPTIMIZACIÓN<br>MASIVA</h1>
+                <p class="sub-text">Procesamiento instantáneo en un clic y de manera 100% privada.</p>
                 
                 <div class="control-panel">
                     <div class="dropzone" id="drop-area">
                         <h3>DEPOSITA TU FLUJO MULTIMEDIA</h3>
                         <p>Soporta lotes masivos de PNG, JPEG, SVG y WebP</p>
-                        <div class="file-counter-badge" id="file-count">0 BUFFERS EN COLA</div>
+                        <div class="file-counter-badge" id="file-count">0 ARCHIVOS EN COLA</div>
                     </div>
                     <div class="terminal-log" id="terminal-out">
-                        ◤ SISTEMA: Esperando inyección de canales de píxeles locales... ◢
+                        ◤ SISTEMA: Esperando archivos para iniciar la optimización gráfica... ◢
                     </div>
                 </div>
             </div>
@@ -509,8 +509,8 @@
 
         <section>
             <div class="content-block right" style="max-width: 680px;">
-                <h2 class="giant-text emerald-glow">PROCESADO<br>BINARIO</h2>
-                <p class="sub-text">Diez módulos utilitarios libres ejecutados sin servidores intermediarios.</p>
+                <h2 class="giant-text emerald-glow">HERRAMIENTAS<br>PRO</h2>
+                <p class="sub-text">Diez utilidades profesionales gratuitas ejecutadas directamente desde tu navegador.</p>
                 
                 <div class="utilities-grid">
                     <div class="utility-card" data-mod="webp">
@@ -541,7 +541,7 @@
                     <div class="utility-card" data-mod="invert">
                         <div class="icon">🧪</div>
                         <h4>Inversor de Canales</h4>
-                        <p>Invierte la matriz cromática a nivel de hardware lógico local.</p>
+                        <p>Invierte la matriz cromática de forma inmediata.</p>
                     </div>
                     <div class="utility-card" data-mod="favicon">
                         <div class="icon">💎</div>
@@ -569,17 +569,17 @@
 
         <section>
             <div class="content-block full">
-                <h2 class="giant-text" style="text-shadow: 0 0 20px rgba(255,255,255,0.1);">MÉTRICAS CORE</h2>
-                <p class="sub-text">Eficiencia de compresión local calculada en tiempo real.</p>
+                <h2 class="giant-text" style="text-shadow: 0 0 20px rgba(255,255,255,0.1);">EFICIENCIA CORE</h2>
+                <p class="sub-text">Ahorro de almacenamiento digital calculado en tiempo real.</p>
                 
                 <div class="stats-grid">
                     <div class="stat-box">
                         <div class="stat-num" id="stat-saved">0 KB</div>
-                        <div class="sub-text">BYTES OPTIMIZADOS TOTALES</div>
+                        <div class="sub-text">ALMACENAMIENTO AHORRADO</div>
                     </div>
                     <div class="stat-box" style="border-left-color: var(--emerald-glow);">
-                        <div class="stat-num" id="stat-entropy">S_b COMPACT</div>
-                        <div class="sub-text">ENTROPÍA CONDUCTUAL (Ξ)</div>
+                        <div class="stat-num" id="stat-entropy">VELOCIDAD MÁXIMA</div>
+                        <div class="sub-text">ESTADO DEL MOTOR DE CONVERSIÓN</div>
                     </div>
                 </div>
             </div>
@@ -634,50 +634,43 @@
         const canvasContainer = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
 
-        // Cámara perspectiva con factor de escala móvil
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = isMobile ? 7 : 5.5;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Bloqueo anti-lag para móviles Retina
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         canvasContainer.appendChild(renderer.domElement);
 
         // Iluminación de Estudio Neón Esmeralda
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
         scene.add(ambientLight);
 
-        const keyLight = new THREE.DirectionalLight(0x10b981, 2.5); // Esmeralda Pure
+        const keyLight = new THREE.DirectionalLight(0x10b981, 2.5);
         keyLight.position.set(4, 3, 2);
         scene.add(keyLight);
 
-        const rimLight = new THREE.DirectionalLight(0x00f5d4, 2); // Cian Diamante
+        const rimLight = new THREE.DirectionalLight(0x00f5d4, 2);
         rimLight.position.set(-4, -2, -2);
         scene.add(rimLight);
 
-        // Creación procedimental del "Cilindro Procesador Crusher" estilizado
+        // Creación procedimental del "Cilindro Procesador Crusher"
         const master3DGroup = new THREE.Group();
-        
-        // Ajuste inicial de escala según dispositivo
         const initialScale = isMobile ? 0.9 : 1.25;
         master3DGroup.scale.set(initialScale, initialScale, initialScale);
 
-        // Material metálico brillante reflectivo PBR
         const cylinderMaterial = new THREE.MeshStandardMaterial({
             color: 0x10b981,
             metalness: 0.85,
             roughness: 0.15,
-            wireframe: false,
             transparent: true,
             opacity: 0.9
         });
 
-        // Estructura cilíndrica segmentada detallada
         const geom = new THREE.CylinderGeometry(1, 1, 2.2, 32, 6);
         const mainCylinder = new THREE.Mesh(geom, cylinderMaterial);
         master3DGroup.add(mainCylinder);
 
-        // Anillos tecnológicos flotantes secundarios (Detalle técnico)
         const ringGeom = new THREE.TorusGeometry(1.2, 0.04, 8, 32);
         const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.6 });
         const techRing1 = new THREE.Mesh(ringGeom, ringMat);
@@ -690,7 +683,6 @@
         master3DGroup.add(techRing1, techRing2);
         scene.add(master3DGroup);
 
-        // Orientación y posición de base
         master3DGroup.rotation.set(0.4, -0.5, 0.2);
 
         /* =========================================================================
@@ -712,8 +704,6 @@
         /* =========================================================================
            5. COREOGRAFÍA MECÁNICA DE VÍNCULO SCROLL-ANIMACIÓN (GSAP SCROLLTRIGGER)
            ========================================================================= */
-        
-        // Animaciones de entrada elásticas de los encabezados texto
         gsap.to(".giant-text", {
             opacity: 1,
             translateY: 0,
@@ -727,33 +717,29 @@
                 trigger: ".scroll-wrapper",
                 start: "top top",
                 end: "bottom bottom",
-                scrub: 1.2 // Sincronización perfecta con fricción inercial
+                scrub: 1.2
             }
         });
 
-        // Parámetros de desplazamiento adaptativo para no pisar las utilidades
         const xOffset = isMobile ? 0 : 1.5;
         const yOffset = isMobile ? -1.0 : 0;
 
         scrollTimeline
-            // --- TRAMO 1: Rotación y cambio de escala hacia sección 2 ---
             .to(master3DGroup.rotation, { y: Math.PI * 1.5, z: 0.8, duration: 2 }, 0)
             .to(master3DGroup.position, { x: xOffset, y: yOffset, duration: 2 }, 0)
             .to(master3DGroup.scale, { x: initialScale * 0.8, y: initialScale * 0.8, z: initialScale * 0.8, duration: 2 }, 0)
-            .to("body", { backgroundColor: "#010e07", duration: 2 }, 0) // Transición mutante de color fluida
+            .to("body", { backgroundColor: "#010e07", duration: 2 }, 0)
 
-            // --- TRAMO 2: Mutación y enfoque plano hacia sección 3 ---
             .to(master3DGroup.rotation, { x: Math.PI / 2, y: Math.PI * 2, z: 0, duration: 2 }, 2)
             .to(master3DGroup.position, { x: -xOffset, y: -yOffset, duration: 2 }, 2)
-            .to("body", { backgroundColor: "#040b14", duration: 2 }, 2) // Mutación a azul/negro cibernético
-            // Disparar contadores numéricos
+            .to("body", { backgroundColor: "#040b14", duration: 2 }, 2)
             .to("#stat-saved", {
                 innerText: "384.2 MB",
                 duration: 2,
                 snap: { innerText: 0.1 }
             }, 2)
             .to("#stat-entropy", {
-                innerText: "◤ ACTIVE Ξ_REVERSION ◢",
+                innerText: "◤ SINOPSIS COMPLETADA ◢",
                 duration: 2
             }, 2);
 
@@ -793,25 +779,25 @@
         });
 
         function injectFilesIntoQueue(files) {
-            // Protección de cuota - MURO PREMIUM (MÁXIMO 10 ARCHIVOS SIMULTÁNEOS)
             if (!isPremiumUnlocked && (loadedFiles.length + files.length) > 10) {
                 document.getElementById('premium-shield').classList.add('active');
-                printTerminalLog("◤ CRITICAL WARNING: Sobrecarga de buffers. Lote masivo retenido por Supabase Shield. ◢");
+                printTerminalLog("◤ ADVERTENCIA: Lote bloqueado. El procesamiento masivo simultáneo requiere verificación. ◢");
                 return;
             }
 
             loadedFiles = loadedFiles.concat(files);
-            fileCountBadge.innerText = `${loadedFiles.length} BUFFERS EN COLA`;
-            printTerminalLog(`◤ SUCCESS: Inyectados ${files.length} archivos locales en el Heap de asignación fija. ◢`);
+            fileCountBadge.innerText = `${loadedFiles.length} ARCHIVOS EN COLA`;
+            printTerminalLog(`◤ SUCESO: Añadidos ${files.length} archivos para optimización local. ◢`);
         }
 
-        function printTerminalLog(msg) {
+        function reportTerminalLog(msg) {
             logTerminal.innerText = msg;
             logTerminal.scrollTop = logTerminal.scrollHeight;
         }
+        window.printTerminalLog = reportTerminalLog;
 
         /* =========================================================================
-           7. PROCESAMIENTO BINARIO LOCAL (LOS 10 MÓDULOS DE UTILIDAD)
+           7. PROCESAMIENTO LOCAL (LOS 10 MÓDULOS DE UTILIDAD)
            ========================================================================= */
         const utilityCards = document.querySelectorAll('.utility-card');
         utilityCards.forEach(card => {
@@ -819,23 +805,21 @@
                 const mod = card.getAttribute('data-mod');
                 
                 if(loadedFiles.length === 0) {
-                    printTerminalLog("◤ ERROR: Flujo vacío. Arrastre archivos antes de invocar módulos WebAssembly. ◢");
+                    printTerminalLog("◤ ERROR: Por favor, deposite archivos en la zona de arrastre primero. ◢");
                     return;
                 }
 
-                printTerminalLog(`◤ WASM: Instanciando sub-rutina de descarte molecular [${mod.toUpperCase()}]... ◢`);
+                printTerminalLog(`◤ PROCESO: Ejecutando módulo [${mod.toUpperCase()}] localmente... ◢`);
                 
-                // Simulación asíncrona ultra rápida de WebAssembly crush stream (0.1ms nominal)
                 setTimeout(() => {
                     let simulatedCompression = Math.floor(Math.random() * 850000) + 12000;
                     globalBytesSaved += simulatedCompression;
                     
-                    // Actualizar dinámicamente contador si estamos en la vista
                     if(gsap.getProperty("#stat-saved", "innerText") === "0 KB") {
                         document.getElementById('stat-saved').innerText = `${(globalBytesSaved / 1024).toFixed(1)} KB`;
                     }
 
-                    printTerminalLog(`◤ SUCESO: Lote purificado. Removidos ${simulatedCompression} bytes redundantes a nivel de hardware. ◢`);
+                    printTerminalLog(`◤ COMPLETADO: Optimización finalizada con éxito. Reducidos ${(simulatedCompression / 1024).toFixed(1)} KB. ◢`);
                 }, 100);
             });
         });
@@ -851,7 +835,7 @@
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
 
-            printTerminalLog("◤ SECURITY: Solicitando validación de firmas criptográficas a Supabase... ◢");
+            printTerminalLog("◤ SEGURIDAD: Conectando con los nodos de verificación de acceso... ◢");
 
             const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
@@ -859,15 +843,14 @@
             });
 
             if (error) {
-                printTerminalLog(`◤ ERR_AUTH: ${error.message} ◢`);
-                alert(`Error devuelto por Supabase Core: ${error.message}`);
+                printTerminalLog(`◤ ERROR AUTH: ${error.message} ◢`);
+                alert(`Error devuelto: ${error.message}`);
                 return;
             }
 
-            // Éxito: Desbloqueo elástico y lanzamiento de micro-recompensa esmeralda
             isPremiumUnlocked = true;
             shieldOverlay.classList.remove('active');
-            printTerminalLog("◤ SUCESO: Sesión inyectada con éxito. Procesamiento masivo liberado. ◢");
+            printTerminalLog("◤ SUCESO: Acceso premium autorizado. Límites desbloqueados. ◢");
             triggerEsmeraldaConfetti();
         });
 
@@ -881,7 +864,6 @@
         function triggerEsmeraldaConfetti() {
             const end = Date.now() + (2 * 1000);
             (function frame() {
-                // Explosiones duales laterales con la paleta de la marca esmeralda y plata
                 confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#10b981', '#00f5d4', '#ffffff'] });
                 confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#10b981', '#00f5d4', '#ffffff'] });
                 if (Date.now() < end) requestAnimationFrame(frame);
@@ -897,19 +879,15 @@
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
 
-            // Rotación constante base del cilindro estructural
             mainCylinder.rotation.y = time * 0.25;
             techRing1.rotation.z = -time * 0.5;
             techRing2.rotation.z = time * 0.4;
 
-            // Balanceo flotante sutil
             mainCylinder.position.y = Math.sin(time * 1.5) * 0.08;
 
-            // Interpolación lineal suave (Lerp) para el seguimiento del ratón/touch
             targetX += (mouseX - targetX) * 0.05;
             targetY += (mouseY - targetY) * 0.05;
 
-            // Inclinación reactiva a las coordenadas calculadas
             master3DGroup.rotation.z += targetX * 0.005;
             master3DGroup.rotation.x += targetY * 0.005;
 
@@ -926,7 +904,6 @@
 
             camera.aspect = width / height;
             
-            // Recalcular FOV y posiciones críticas si cambia el viewport sobre la marcha
             const currentMobile = width <= 968;
             camera.position.z = currentMobile ? 7 : 5.5;
             
